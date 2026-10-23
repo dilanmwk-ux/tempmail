@@ -1,260 +1,221 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<title>TempMail – Disposable inbox for any address</title>
+<meta name="color-scheme" content="dark light">
+<title>TempMail – Inbox email sementara</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ffc93c'/%3E%3Cpath d='M7 11h18v11H7zM7 11l9 7 9-7' fill='none' stroke='%23241a00' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{var t=JSON.parse(localStorage.getItem('tm.theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
-  :root {
-    --bg: #edf0f4; --surface: #ffffff; --sunk: #f4f6f9; --ink: #101b27; --muted: #5a6a7a;
-    --line: #d8dfe7; --accent: #2b3bff; --accent-ink: #ffffff; --sel: #e9ebff;
-    --ok: #0e8a5f; --err: #c2331f; --shadow: 0 12px 32px rgba(16, 27, 39, .14);
-    --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0c1218; --surface: #131b24; --sunk: #0f161d; --ink: #e8eef4; --muted: #8fa0b1;
-      --line: #243040; --accent: #8b95ff; --accent-ink: #0c1218; --sel: #1b2340;
-      --ok: #3dd9a0; --err: #ff8a78; --shadow: 0 12px 32px rgba(0, 0, 0, .5);
-    }
-  }
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.5 var(--sans); min-height: 100vh; display: flex; flex-direction: column; }
-  button, input { font: inherit; color: inherit; }
-  button { cursor: pointer; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px; }
-  .mono { font-family: var(--mono); }
-  .muted { color: var(--muted); }
-
-  /* Header */
-  .top { border-bottom: 1px solid var(--line); background: var(--surface); position: sticky; top: 0; z-index: 20; }
-  .top .wrap { height: 56px; display: flex; align-items: center; justify-content: space-between; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -.01em; }
-  .brand svg { width: 22px; height: 22px; color: var(--accent); }
-  .chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 13px; color: var(--muted); }
-  .chip:hover { background: var(--sunk); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
-  .dot.off { background: var(--muted); }
-
-  main { flex: 1; padding: 24px 0 32px; display: flex; flex-direction: column; gap: 20px; }
-
-  /* Address */
-  .addr { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
-  .addr > label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-  .addr-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .field { flex: 1 1 340px; min-width: 0; display: flex; border: 1px solid var(--line); border-radius: 10px; background: var(--sunk); }
-  .field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
-  .field input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 12px 14px; font: 500 20px/1.2 var(--mono); outline: none; }
-  .field input::placeholder { color: var(--muted); opacity: .6; }
-  .domain { position: relative; border-left: 1px solid var(--line); }
-  .domain-btn { height: 100%; display: flex; align-items: center; gap: 8px; padding: 0 14px; border: 0; background: transparent; border-radius: 0 10px 10px 0; font: 500 17px/1 var(--mono); color: var(--accent); }
-  .domain-btn:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
-  .domain-btn svg { width: 14px; height: 14px; transition: transform .15s; }
-  .domain-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
-  .menu { position: absolute; right: 0; top: calc(100% + 8px); width: min(300px, calc(100vw - 40px)); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); z-index: 30; overflow: hidden; }
-  .menu[hidden] { display: none; }
-  .menu ul { list-style: none; margin: 0; padding: 6px; max-height: 240px; overflow-y: auto; }
-  .menu li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font: 500 14px var(--mono); }
-  .menu li:hover, .menu li:focus { background: var(--sunk); outline: none; }
-  .menu li[aria-selected="true"] { background: var(--sel); color: var(--accent); }
-  .menu li svg { width: 14px; height: 14px; flex: none; }
-  .menu form { display: flex; gap: 6px; padding: 10px; border-top: 1px solid var(--line); background: var(--sunk); }
-  .menu form input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font: 400 13px var(--mono); }
-
-  .actions { display: flex; gap: 8px; flex: 0 0 auto; }
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font-weight: 500; font-size: 14px; }
-  .btn:hover { background: var(--sunk); }
-  .btn svg { width: 18px; height: 18px; }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  .btn.primary:hover { filter: brightness(1.08); background: var(--accent); }
-  .btn.icon { width: 44px; padding: 0; }
-  .btn.small { min-height: 32px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
-  .btn.danger:hover { color: var(--err); border-color: var(--err); }
-  .note { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
-
-  /* Request line: what the page last asked the API */
-  .req { margin-top: 16px; padding: 10px 12px; border-radius: 8px; background: var(--sunk); border: 1px solid var(--line); display: flex; align-items: center; gap: 12px; font: 400 12px/1.4 var(--mono); color: var(--muted); min-width: 0; }
-  .req .verb { color: var(--ink); font-weight: 600; }
-  .req .path { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .req .status { font-weight: 600; }
-  .req .status.ok { color: var(--ok); }
-  .req .status.err { color: var(--err); }
-  .req .tail { white-space: nowrap; }
-  @media (max-width: 640px) { .req .tail.hide-sm { display: none; } }
-
-  /* Panes */
-  .panes { display: grid; grid-template-columns: 5fr 7fr; gap: 20px; }
-  .pane { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; height: 620px; overflow: hidden; min-width: 0; }
-  @media (max-width: 1023px) {
-    .panes { grid-template-columns: 1fr; }
-    .pane { height: 72vh; min-height: 440px; }
-    .panes[data-view="list"] #reader-pane, .panes[data-view="detail"] #list-pane { display: none; }
-  }
-  .pane-head { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
-  .pane-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .pane-title h2 { margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: baseline; gap: 10px; }
-  .count { font: 400 12px var(--mono); color: var(--muted); }
-  .search { width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); font-size: 14px; }
-  .search:focus { outline: none; border-color: var(--accent); }
-  .seg { display: inline-flex; padding: 3px; border-radius: 8px; background: var(--sunk); border: 1px solid var(--line); align-self: flex-start; }
-  .seg button { border: 0; background: transparent; padding: 5px 12px; border-radius: 6px; font-size: 13px; color: var(--muted); }
-  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
-  .list { flex: 1; overflow-y: auto; }
-
-  .row { width: 100%; text-align: left; display: grid; grid-template-columns: 10px 1fr; gap: 12px; padding: 13px 16px; border: 0; border-bottom: 1px solid var(--line); background: transparent; }
-  .row:hover { background: var(--sunk); }
-  .row[aria-current="true"] { background: var(--sel); box-shadow: inset 3px 0 0 var(--accent); }
-  .row .mark { width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; }
-  .row.unread .mark { background: var(--accent); }
-  .row .l1, .row .l2 { display: flex; justify-content: space-between; gap: 12px; min-width: 0; }
-  .row .from { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .row.unread .from { font-weight: 600; }
-  .row .when { font: 400 12px var(--mono); color: var(--muted); white-space: nowrap; }
-  .row .subj { font-size: 14px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .row.unread .subj { color: var(--ink); }
-  .row .size { font: 400 12px var(--mono); color: var(--muted); white-space: nowrap; }
-  .more { padding: 12px; text-align: center; }
-
-  .empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; gap: 6px; color: var(--muted); font-size: 14px; }
-  .empty strong { color: var(--ink); font-weight: 600; font-size: 15px; }
-  .empty .mono { color: var(--accent); word-break: break-all; font-size: 13px; }
-
-  /* Reader */
-  .reader { display: flex; flex-direction: column; min-height: 0; flex: 1; }
-  .r-head { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: flex-start; }
-  .r-head .back { display: none; }
-  @media (max-width: 1023px) { .r-head .back { display: inline-flex; } }
-  .r-head h2 { margin: 0 0 10px; font-size: 18px; line-height: 1.3; font-weight: 600; overflow-wrap: anywhere; }
-  .r-head .grow { flex: 1; min-width: 0; }
-  dl.meta { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 13px; }
-  dl.meta dt { color: var(--muted); }
-  dl.meta dd { margin: 0; overflow-wrap: anywhere; min-width: 0; }
-  dl.meta dd.mono { font-size: 12px; }
-  .tabs { display: flex; gap: 4px; padding: 0 16px; border-bottom: 1px solid var(--line); }
-  .tabs button { border: 0; background: transparent; padding: 10px 10px 9px; font-size: 14px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
-  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 500; }
-  .r-body { flex: 1; min-height: 0; overflow-y: auto; padding: 18px 20px; }
-  .r-body pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 14px/1.65 var(--sans); max-width: 78ch; }
-  .r-body iframe { width: 100%; height: 100%; min-height: 320px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
-  .r-body.flush { padding: 0; overflow: hidden; }
-  .r-body.flush iframe { border: 0; border-radius: 0; height: 100%; }
-  table.hdr { border-collapse: collapse; width: 100%; font: 400 12px/1.5 var(--mono); }
-  table.hdr td { padding: 5px 0; vertical-align: top; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
-  table.hdr td:first-child { color: var(--muted); padding-right: 16px; white-space: nowrap; width: 1%; }
-  .files { border-top: 1px solid var(--line); padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; background: var(--sunk); }
-  .files h3 { margin: 0; font-size: 13px; font-weight: 600; }
-  .file { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 13px; min-width: 0; }
-  .file .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
-  .file .info { font: 400 12px var(--mono); color: var(--muted); white-space: nowrap; }
-  .file a { color: var(--accent); font-weight: 500; text-decoration: none; }
-  .file a:hover { text-decoration: underline; }
-
-
-  /* Toasts + QR */
-  #toasts { position: fixed; z-index: 60; top: 68px; right: 16px; left: 16px; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; pointer-events: none; }
-  .toast { pointer-events: auto; max-width: 340px; padding: 10px 14px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 13px; box-shadow: var(--shadow); animation: toastIn .18s ease-out; }
-  .toast.err { background: var(--err); color: #fff; }
-  @keyframes toastIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-  .modal { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(8, 12, 18, .6); }
-  .modal.open { display: flex; }
-  .modal-card { position: relative; width: 100%; max-width: 300px; padding: 24px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
-  .modal-card h3 { margin: 0; font-size: 15px; }
-  .modal-card .qr { padding: 10px; background: #fff; border-radius: 10px; }
-  .modal-card .qr img { display: block; width: 160px; height: 160px; }
-  .modal-card .close { position: absolute; top: 8px; right: 8px; }
-  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+:root{--bg:#0d1226;--panel:#151b38;--panel2:#1d2550;--ink:#eef0ff;--muted:#9aa3cf;--line:#2b3566;--red:#ff5a4e;--blue:#4c7dff;--gold:#ffc93c;--gold-ink:#241a00;--ok:#38d39f;--err:#ff6b6b;--sel:#232c5e;--shadow:0 18px 40px rgba(0,0,0,.35);--display:'Bricolage Grotesque',system-ui,sans-serif;--sans:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace}
+:root[data-theme=light]{--bg:#e8edff;--panel:#fff;--panel2:#f0f3ff;--ink:#0d1226;--muted:#586290;--line:#d0d9f4;--sel:#e2e8ff;--shadow:0 18px 40px rgba(30,50,140,.14);--err:#c93434;--ok:#0f9a6c}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.55 var(--sans);min-height:100vh}
+svg{width:18px;height:18px;flex:none}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--gold);outline-offset:2px}
+.wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 20px}
+.mono{font-family:var(--mono)}.muted{color:var(--muted)}
+/* header */
+.top .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+.brand{display:flex;align-items:center;gap:10px;font:800 22px var(--display);letter-spacing:-.02em}
+.brand i{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--gold);color:var(--gold-ink);transform:rotate(-6deg)}
+.top .right{display:flex;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:7px 14px 7px 10px;border-radius:999px;border:1.5px solid var(--line);background:var(--panel);cursor:pointer;font-size:13px;font-weight:600}
+.dot{display:grid;place-items:center}.dot svg{width:20px;height:20px;transform:rotate(-90deg)}
+.dot circle{fill:none;stroke-width:3}.dot .trk{stroke:var(--line)}.dot .arc{stroke:var(--ok);stroke-linecap:round;stroke-dasharray:44;stroke-dashoffset:44;animation:ring 10s linear forwards}
+.dot.off .arc{animation-play-state:paused;stroke:var(--muted)}
+@keyframes ring{to{stroke-dashoffset:0}}
+/* hero + ticket */
+.hero{padding:34px 0 22px;max-width:640px}
+.hero h1{margin:0 0 8px;font:800 clamp(32px,6vw,54px)/1.02 var(--display);letter-spacing:-.035em}
+.hero p{margin:0;color:var(--muted);font-size:16px;max-width:52ch}
+.ticket{position:relative;padding:34px 24px 20px;border-radius:20px;background:var(--panel);border:1.5px solid var(--line);box-shadow:var(--shadow)}
+.ticket::before{content:"";position:absolute;inset:0 0 auto 0;height:10px;border-radius:20px 20px 0 0;background:repeating-linear-gradient(135deg,var(--red) 0 14px,transparent 14px 24px,var(--blue) 24px 38px,transparent 38px 48px)}
+.stamp{position:absolute;top:26px;right:20px;display:grid;place-items:center;gap:0;width:64px;padding:8px 0 6px;background:var(--gold);color:var(--gold-ink);font:800 11px/1.1 var(--display);text-align:center;transform:rotate(4deg);-webkit-mask:radial-gradient(circle 4px at 4px 4px,#0000 98%,#000) -4px -4px/8px 8px;mask:radial-gradient(circle 4px at 4px 4px,#0000 98%,#000) -4px -4px/8px 8px}
+.stamp svg{width:22px;height:22px}
+.ticket label{display:block;margin-bottom:8px;font-weight:600;font-size:13px;color:var(--muted)}
+.field{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;border-radius:14px;border:2px solid var(--line);background:var(--bg);max-width:calc(100% - 78px)}
+.field:focus-within{border-color:var(--gold)}
+#login{flex:1 1 180px;min-width:0;padding:12px 8px 12px 16px;border:0;background:transparent;outline:0;font:800 clamp(22px,4.2vw,34px)/1.1 var(--display);letter-spacing:-.02em}
+.domain{position:relative;display:flex}
+.domain-btn{display:flex;align-items:center;gap:6px;padding:0 14px 0 4px;border:0;background:transparent;cursor:pointer;font:800 clamp(18px,3.4vw,28px) var(--display);color:var(--gold);letter-spacing:-.02em}
+.menu{position:absolute;z-index:50;top:calc(100% + 8px);right:0;width:min(280px,calc(100vw - 48px));max-height:60vh;overflow:auto;padding:8px;border-radius:14px;background:var(--panel2);border:1.5px solid var(--line);box-shadow:var(--shadow)}
+.menu ul{list-style:none;margin:0;padding:0}
+.menu li{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:600}
+.menu li:hover,.menu li:focus{background:var(--sel);outline:0}.menu li[aria-selected=true]{color:var(--gold)}
+.menu form{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.menu form input{flex:1;min-width:0;padding:8px 10px;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);font-size:13px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel2);cursor:pointer;font-weight:700;font-size:14px;transition:transform .12s,border-color .12s}
+.btn:hover{border-color:var(--muted)}.btn:active{transform:translateY(1px)}.btn:disabled{opacity:.5;cursor:default}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.btn.small{padding:6px 11px;font-size:13px;border-radius:10px}.btn.icon{padding:10px}.btn.icon.small{padding:6px}
+.btn.small svg{width:15px;height:15px}
+.btn.danger{color:var(--err)}.btn.danger:hover{border-color:var(--err)}
+.req{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px;padding-top:12px;border-top:1.5px dashed var(--line);font:12px var(--mono);color:var(--muted)}
+.req .verb{color:var(--blue);font-weight:700}.req .path{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.req .status{padding:1px 7px;border-radius:6px;font-weight:700}.status.ok{background:rgba(56,211,159,.16);color:var(--ok)}.status.err{background:rgba(255,107,107,.16);color:var(--err)}
+.perks{display:flex;flex-wrap:wrap;gap:8px 22px;list-style:none;margin:16px 2px 28px;padding:0;color:var(--muted);font-size:14px;font-weight:500}
+.perks li{display:flex;align-items:center;gap:8px}.perks svg{color:var(--ok)}
+/* inbox */
+.panes{display:grid;grid-template-columns:minmax(300px,380px) 1fr;min-height:560px;height:min(76vh,720px);border-radius:20px;border:1.5px solid var(--line);background:var(--panel);overflow:hidden}
+.pane{min-width:0;min-height:0;display:flex;flex-direction:column}
+#list-pane{border-right:1.5px solid var(--line)}
+.pane-head{padding:14px;border-bottom:1.5px solid var(--line);display:grid;gap:10px}
+.pane-title{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pane-title h2{margin:0;font:800 20px var(--display);letter-spacing:-.02em}
+.count{display:block;font:500 12px var(--sans);color:var(--muted);letter-spacing:0}
+.pane-tools{display:flex;gap:6px}
+.search{width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);outline:0}.search:focus{border-color:var(--gold)}
+.seg{display:flex;gap:4px;padding:3px;border-radius:10px;background:var(--bg)}
+.seg button{flex:1;padding:5px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--panel2);color:var(--ink)}
+.list{flex:1;overflow:auto;padding:8px}
+.row{display:grid;grid-template-columns:10px 1fr;gap:10px;align-items:start;width:100%;margin-bottom:4px;padding:11px 12px;border:0;border-radius:12px;background:transparent;text-align:left;cursor:pointer}
+.row:hover{background:var(--panel2)}.row[aria-current=true]{background:var(--sel)}
+.mark{width:9px;height:9px;margin-top:7px;border-radius:50%;border:1.5px solid var(--line)}
+.row.unread .mark{background:var(--gold);border-color:var(--gold)}
+.l1,.l2{display:flex;justify-content:space-between;gap:10px;min-width:0}
+.from{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.row.unread .from{font-weight:800}
+.when,.size{flex:none;font-size:12px;color:var(--muted)}
+.subj{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:14px}.row.unread .subj{color:var(--ink)}
+.more{padding:8px;text-align:center}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:100%;min-height:220px;padding:24px;text-align:center;color:var(--muted)}
+.empty::before{content:"";width:54px;height:54px;margin-bottom:6px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a85c4' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M3 6h18v12H3zM3 6l9 7 9-7'/%3E%3C/svg%3E") center/contain no-repeat}
+.empty strong{color:var(--ink);font:800 18px var(--display)}.empty .mono{color:var(--gold);word-break:break-all}
+/* reader */
+.reader{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto}
+.r-head{display:flex;gap:12px;align-items:flex-start;padding:18px 20px;border-bottom:1.5px solid var(--line)}
+.grow{flex:1;min-width:0}.r-head h2{margin:0 0 10px;font:800 22px/1.2 var(--display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;margin:0;font-size:13px}
+.meta dt{color:var(--muted)}.meta dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.back{display:none}
+.tabs{display:flex;gap:4px;padding:10px 20px 0;border-bottom:1.5px solid var(--line)}
+.tabs button{padding:8px 14px;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);font-weight:700;cursor:pointer}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--gold)}
+.r-body{flex:1;padding:18px 20px}.r-body.flush{padding:0}
+.r-body pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.6 var(--sans)}
+.r-body iframe{display:block;width:100%;height:100%;min-height:420px;border:0;background:#fff}
+.hdr{width:100%;border-collapse:collapse;font-size:12.5px}.hdr td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}.hdr td:first-child{width:30%;color:var(--blue);font-family:var(--mono)}
+.files{padding:14px 20px 20px;border-top:1.5px solid var(--line)}.files h3{margin:0 0 10px;font:800 15px var(--display)}
+.file{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 12px;margin-bottom:6px;border-radius:10px;background:var(--panel2)}
+.file .name{flex:1 1 140px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.file .info{font-size:12px;color:var(--muted)}
+.file a{padding:5px 12px;border-radius:8px;background:var(--gold);color:var(--gold-ink);font-weight:700;font-size:13px;text-decoration:none}
+/* guide + footer */
+.guide{margin:44px 0 12px}.guide h2{margin:0 0 18px;font:800 clamp(24px,4vw,32px) var(--display);letter-spacing:-.03em}
+.guide ol{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;list-style:none;margin:0;padding:0;counter-reset:s}
+.guide li{counter-increment:s;padding:18px;border-radius:16px;border:1.5px solid var(--line);background:var(--panel);color:var(--muted)}
+.guide li::before{content:counter(s);display:grid;place-items:center;width:30px;height:30px;margin-bottom:12px;border-radius:50%;background:var(--gold);color:var(--gold-ink);font:800 15px var(--display)}
+.guide li b{display:block;margin-bottom:4px;color:var(--ink);font:800 17px var(--display)}
+footer{padding:34px 0 40px;color:var(--muted);font-size:14px;font-weight:600;text-align:center}footer .wrap{text-align:center}
+/* toasts + modal */
+#toasts{position:fixed;z-index:60;top:76px;right:16px;left:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+.toast{max-width:340px;padding:11px 16px;border-radius:12px;background:var(--gold);color:var(--gold-ink);font-weight:700;font-size:14px;box-shadow:var(--shadow);animation:in .18s ease-out}
+.toast.err{background:var(--err);color:#fff}
+@keyframes in{from{opacity:0;transform:translateY(-6px)}}
+.modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(5,8,20,.7)}.modal.open{display:flex}
+.modal-card{position:relative;width:100%;max-width:300px;padding:26px 24px 22px;border-radius:18px;background:var(--panel);border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.modal-card h3{margin:0;font:800 17px var(--display)}.modal-card .qr{padding:10px;background:#fff;border-radius:12px}.modal-card .qr img{display:block;width:160px;height:160px}.modal-card .close{position:absolute;top:8px;right:8px}
+@media(max-width:860px){
+.panes{grid-template-columns:1fr;height:auto;min-height:0}.pane{height:70vh}#list-pane{border-right:0}
+.panes[data-view=list] #reader-pane,.panes[data-view=detail] #list-pane{display:none}
+.back{display:inline-flex}.guide ol{grid-template-columns:1fr}
+.field{max-width:100%;margin-top:34px}.stamp{top:24px}}
+@media(max-width:520px){.wrap{padding:0 14px}.hide-sm{display:none}.ticket{padding:30px 16px 16px}.chip span:last-child{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.btn.primary{flex:1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-
 <div id="toasts" aria-live="polite"></div>
 
-<header class="top">
-  <div class="wrap">
-    <div class="brand">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
-      TempMail
-    </div>
-    <button id="sync-toggle" class="chip" type="button" aria-pressed="true">
-      <span id="sync-dot" class="dot"></span><span id="sync-text">Auto-sync every 10s</span>
+<header class="top"><div class="wrap">
+  <div class="brand"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></i>TempMail</div>
+  <div class="right">
+    <button id="sync-toggle" class="chip" type="button" aria-pressed="true" title="Aktif/jeda sinkron otomatis">
+      <span id="sync-dot" class="dot"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="trk" cx="12" cy="12" r="7"/><circle id="ring" class="arc" cx="12" cy="12" r="7"/></svg></span><span id="sync-text">Sinkron otomatis 10 dtk</span>
     </button>
+    <button id="theme-btn" class="btn icon" type="button" aria-label="Ganti tema terang/gelap" title="Ganti tema" style="border-radius:999px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/></svg></button>
   </div>
-</header>
+</div></header>
 
 <main class="wrap">
-  <section class="addr" aria-label="Mailbox address">
-    <label for="login">Your address</label>
-    <div class="addr-row">
-      <div class="field">
-        <input id="login" type="text" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40" placeholder="username" aria-label="Username">
-        <div class="domain" id="domain-wrap">
-          <button id="domain-btn" class="domain-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="domain-menu">
-            <span id="domain-label">@catchmail.io</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
-          <div id="domain-menu" class="menu" hidden>
-            <ul id="domain-list" role="listbox" aria-label="Choose a domain"></ul>
-            <form id="custom-form">
-              <input id="custom-domain" type="text" placeholder="your own domain.com" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Custom domain">
-              <button class="btn small" type="submit">Add</button>
-            </form>
-          </div>
+  <div class="hero">
+    <h1>Email sementara, siap dalam sedetik.</h1>
+    <p>Pakai alamat ini untuk daftar atau verifikasi tanpa membuka inbox pribadimu. Tidak perlu akun, email masuk otomatis.</p>
+  </div>
+
+  <section class="ticket" aria-label="Alamat email sementara">
+    <div class="stamp" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>7 hari</div>
+    <label for="login">Alamat emailmu</label>
+    <div class="field">
+      <input id="login" type="text" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40" placeholder="username" aria-label="Username">
+      <div class="domain" id="domain-wrap">
+        <button id="domain-btn" class="domain-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="domain-menu">
+          <span id="domain-label">@catchmail.io</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="domain-menu" class="menu" hidden>
+          <ul id="domain-list" role="listbox" aria-label="Pilih domain"></ul>
         </div>
       </div>
-      <div class="actions">
-        <button id="copy-btn" class="btn primary" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/></svg>
-          <span id="copy-text">Copy</span>
-        </button>
-        <button id="qr-btn" class="btn icon" type="button" aria-label="Show QR code" title="QR code">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>
-        </button>
-        <button id="new-btn" class="btn icon" type="button" aria-label="Random address" title="Random address">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M5.6 15A8 8 0 0019 13M18.4 9A8 8 0 005 11"/></svg>
-        </button>
-      </div>
     </div>
-    <p class="note">There is no sign-up. Any address works, and anyone who knows it can read its inbox. Messages are deleted automatically after 7 days.</p>
-    <div class="req" id="req" aria-live="off"><span class="path">Waiting for the first request…</span></div>
+    <div class="actions">
+      <button id="copy-btn" class="btn primary" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/></svg><span id="copy-text">Salin</span></button>
+      <button id="new-btn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M5.6 15A8 8 0 0019 13M18.4 9A8 8 0 005 11"/></svg>Acak baru</button>
+      <button id="qr-btn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>QR</button>
+    </div>
   </section>
 
-  <section id="inbox" class="panes" data-view="list">
+  <ul class="perks">
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Tanpa daftar</li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Lampiran bisa diunduh</li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Email dihapus otomatis setelah 7 hari</li>
+  </ul>
+
+  <section id="inbox" class="panes" data-view="list" aria-label="Kotak masuk">
     <div id="list-pane" class="pane">
       <div class="pane-head">
         <div class="pane-title">
           <h2>Inbox <span id="count" class="count"></span></h2>
-          <button id="refresh-btn" class="btn small" type="button">
-            <svg id="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M5.6 15A8 8 0 0019 13M18.4 9A8 8 0 005 11"/></svg>
-            Refresh
-          </button>
+          <div class="pane-tools">
+            <button id="readall-btn" class="btn small icon" type="button" aria-label="Tandai semua dibaca" title="Tandai semua dibaca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12l5 5L17 7M12 16l1 1L22 7"/></svg></button>
+            <button id="refresh-btn" class="btn small" type="button"><svg id="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M5.6 15A8 8 0 0019 13M18.4 9A8 8 0 005 11"/></svg>Muat ulang</button>
+          </div>
         </div>
-        <input id="search" class="search" type="search" placeholder="Search sender or subject" aria-label="Search messages">
+        <input id="search" class="search" type="search" placeholder="Cari pengirim atau subjek" aria-label="Cari email">
         <div class="seg" role="group" aria-label="Filter">
-          <button type="button" data-filter="all" aria-pressed="true">All</button>
-          <button type="button" data-filter="unread" aria-pressed="false">Unread</button>
+          <button type="button" data-filter="all" aria-pressed="true">Semua</button>
+          <button type="button" data-filter="unread" aria-pressed="false">Belum dibaca</button>
         </div>
       </div>
       <div id="list" class="list"></div>
     </div>
     <div id="reader-pane" class="pane"><div id="reader" class="reader"></div></div>
   </section>
+
+  <section class="guide">
+    <h2>Cara pakainya</h2>
+    <ol>
+      <li><b>Salin alamat</b>Pakai alamat acak di atas, atau ketik username sendiri dan pilih domainnya.</li>
+      <li><b>Tempel di formulir</b>Daftar akun atau minta kode verifikasi memakai alamat tadi.</li>
+      <li><b>Baca di sini</b>Email yang masuk muncul sendiri di inbox, lengkap dengan lampirannya.</li>
+    </ol>
+  </section>
 </main>
 
+<footer><div class="wrap">Powered by JarZz</div></footer>
 
-<div id="qr-modal" class="modal" role="dialog" aria-modal="true" aria-label="QR code">
+<div id="qr-modal" class="modal" role="dialog" aria-modal="true" aria-label="Kode QR">
   <div class="modal-card">
-    <button id="qr-close" class="btn icon small close" type="button" aria-label="Close">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="width:16px;height:16px"><path d="M6 6l12 12M18 6L6 18"/></svg>
-    </button>
-    <h3>Scan to copy this address</h3>
-    <div class="qr"><img id="qr-img" alt="QR code of the email address" src=""></div>
+    <button id="qr-close" class="btn icon small close" type="button" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h3>Scan untuk membawa alamat ini</h3>
+    <div class="qr"><img id="qr-img" alt="Kode QR alamat email" src=""></div>
     <span id="qr-addr" class="mono muted" style="font-size:12px;word-break:break-all"></span>
   </div>
 </div>
@@ -298,14 +259,14 @@
   function fmtWhen(raw) {
     const d = parseDate(raw); if (!d) return '';
     return new Date().toDateString() === d.toDateString()
-      ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : d.toLocaleDateString([], { day: 'numeric', month: 'short' });
+      ? d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      : d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
   }
-  const fmtFull = raw => { const d = parseDate(raw); return d ? d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : String(raw || ''); };
+  const fmtFull = raw => { const d = parseDate(raw); return d ? d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : String(raw || ''); };
   function senderName(from) {
     const s = String(from || '').trim();
     const m = s.match(/^"?([^"<]+?)"?\s*<.*>$/);
-    return (m ? m[1] : s.replace(/@.*/, '')) || 'Unknown sender';
+    return (m ? m[1] : s.replace(/@.*/, '')) || 'Pengirim tidak dikenal';
   }
   function toast(msg, type) {
     const el = document.createElement('div');
@@ -314,6 +275,7 @@
     $('toasts').appendChild(el);
     setTimeout(() => el.remove(), 3200);
   }
+  function restartRing() { const r = $('ring'); if (!r) return; r.style.animation = 'none'; void r.getBoundingClientRect(); r.style.animation = ''; }
   const httpError = (message, status) => Object.assign(new Error(message), { status });
 
   /* ================= API ================= */
@@ -343,7 +305,7 @@
                  : { url: `${API_BASE}/api/v1/message/${id}?mailbox=${mb}`, method, path: `/api/v1/message/${p.id}?mailbox=${p.mailbox}` };
   }
 
-  function showReq(info) {
+  function showReq(info) { return;
     const cls = info.status >= 200 && info.status < 400 ? 'ok' : 'err';
     $('req').innerHTML =
       `<span class="verb">${esc(info.method)}</span><span class="path" title="${esc(info.path)}">${esc(info.path)}</span>` +
@@ -362,7 +324,7 @@
       // A TypeError means the browser could not reach the API (CORS/network): use the Vercel proxy instead.
       if (!useProxy && e instanceof TypeError) { useProxy = true; return call(kind, p, retried); }
       showReq({ method: t.method, path: t.path, status: 0, ms: Math.round(performance.now() - t0) });
-      throw httpError('Cannot reach the mail service. Check your connection and try again.', 0);
+      throw httpError('Tidak bisa terhubung ke layanan email. Cek koneksi lalu coba lagi.', 0);
     }
     const ms = Math.round(performance.now() - t0);
     if (res.status === 429 && !retried) { await sleep(1500); return call(kind, p, true); }
@@ -372,7 +334,7 @@
     if (!res.ok) {
       showReq(info);
       const e = data && data.error;
-      throw httpError((e && e.message) || (typeof e === 'string' ? e : '') || `Request failed (${res.status}).`, res.status);
+      throw httpError((e && e.message) || (typeof e === 'string' ? e : '') || `Permintaan gagal (${res.status}).`, res.status);
     }
     return { data, info };
   }
@@ -408,15 +370,15 @@
   function commitLogin() {
     const v = cleanLogin($('login').value);
     if (v === state.login) { $('login').value = state.login; return; }
-    if (v.length < 3) { toast('Username needs at least 3 characters.', 'err'); $('login').value = state.login; return; }
+    if (v.length < 3) { toast('Username minimal 3 karakter.', 'err'); $('login').value = state.login; return; }
     setAddress(v, state.domain);
   }
   async function copyAddress() {
     const text = address(); if (!text) return;
     try { await navigator.clipboard.writeText(text); }
     catch { const t = document.createElement('input'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
-    $('copy-text').textContent = 'Copied'; toast('Address copied');
-    setTimeout(() => { $('copy-text').textContent = 'Copy'; }, 1600);
+    $('copy-text').textContent = 'Tersalin'; toast('Alamat disalin');
+    setTimeout(() => { $('copy-text').textContent = 'Salin'; }, 1600);
   }
 
   /* ================= Inbox ================= */
@@ -429,13 +391,14 @@
   function renderList() {
     document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === state.filter)));
     const unread = state.emails.filter(e => !state.read.has(e.id)).length;
-    $('count').textContent = state.total ? `${state.emails.length} of ${state.total}` + (unread ? ` · ${unread} unread` : '') : '';
+    $('count').textContent = state.total ? `${state.emails.length} of ${state.total}` + (unread ? ` · ${unread} belum dibaca` : '') : '';
+    document.title = (unread ? `(${unread}) ` : '') + 'TempMail – Inbox email sementara';
     const list = visible(), box = $('list');
     if (!list.length) {
       let t, s;
-      if (state.loading && !state.emails.length) { t = 'Checking inbox…'; s = ''; }
-      else if (state.emails.length) { t = 'Nothing matches'; s = 'Try a different search or filter.'; }
-      else { t = 'No messages yet'; s = `Send an email to <span class="mono">${esc(address())}</span> and it will show up here within 10 seconds.`; }
+      if (state.loading && !state.emails.length) { t = 'Memeriksa inbox…'; s = ''; }
+      else if (state.emails.length) { t = 'Tidak ada hasil'; s = 'Coba kata kunci atau filter lain.'; }
+      else { t = 'Belum ada email masuk'; s = `Kirim email ke <span class="mono">${esc(address())}</span> dan pesannya muncul di sini dalam 10 detik.`; }
       box.innerHTML = `<div class="empty"><strong>${t}</strong><span>${s}</span></div>`;
       return;
     }
@@ -448,7 +411,7 @@
           <span class="l2"><span class="subj">${esc(e.subject)}</span><span class="size">${esc(fmtSize(e.size))}</span></span>
         </span></button>`;
     }).join('');
-    if (state.emails.length < state.total) html += `<div class="more"><button id="more-btn" class="btn small" type="button">Load more (${state.total - state.emails.length} left)</button></div>`;
+    if (state.emails.length < state.total) html += `<div class="more"><button id="more-btn" class="btn small" type="button">Muat lagi (${state.total - state.emails.length} lagi)</button></div>`;
     box.innerHTML = html;
   }
 
@@ -458,10 +421,12 @@
     try {
       const { data, info } = await call('mailbox', { mailbox, page });
       if (mailbox !== address()) return;
-      const incoming = (data.messages || []).map(m => ({
-        id: String(m.id), from: String(m.from || 'Unknown sender'), subject: m.subject || '(No subject)',
+      const incoming = (data.messages || data.data || (Array.isArray(data) ? data : [])).map(m => ({
+        id: String(m.id), from: String(m.from || 'Pengirim tidak dikenal'), subject: m.subject || '(Tanpa subjek)',
         date: m.date || '', size: m.size
       }));
+      if (page === 1 && state.seen && state.seenFor === mailbox) { const fresh = incoming.filter(m => !state.seen.has(m.id)); if (fresh.length) toast('Email baru dari ' + senderName(fresh[0].from)); }
+      state.seen = new Set([...(state.seenFor === mailbox && state.seen ? state.seen : []), ...incoming.map(m => m.id)]); state.seenFor = mailbox;
       if (page === 1 && state.page === 1) state.emails = incoming;
       else {
         const have = new Set(state.emails.map(e => e.id));
@@ -470,12 +435,12 @@
       state.emails.sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0));
       if (page > 1) state.page = page;
       state.total = typeof data.total === 'number' ? data.total : state.emails.length;
-      info.note = `${state.total} message${state.total === 1 ? '' : 's'} · synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
-      showReq(info);
+      info.note = `${state.total} message${state.total === 1 ? '' : 's'} · synced ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+      showReq(info); restartRing();
       if (state.selectedId && !state.emails.some(e => e.id === state.selectedId) && state.emails.length >= state.total) {
         state.selectedId = null; state.detail = null; renderPlaceholder(); setView('list');
       }
-      if (!silent) toast('Inbox refreshed');
+      if (!silent) toast('Inbox diperbarui');
     } catch (err) {
       if (!silent) toast(err.message, 'err');
     } finally { state.loading = false; renderList(); }
@@ -484,7 +449,7 @@
   /* ================= Reader ================= */
   const setView = v => { $('inbox').dataset.view = v; };
   function renderPlaceholder() {
-    $('reader').innerHTML = `<div class="empty"><strong>Select a message</strong><span>Its body, headers and attachments open here.</span></div>`;
+    $('reader').innerHTML = `<div class="empty"><strong>Pilih email</strong><span>Isi, header, dan lampiran email terbuka di sini.</span></div>`;
   }
   const BACK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M15 6l-6 6 6 6"/></svg>';
   const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg>';
@@ -492,29 +457,29 @@
   function head(e, m) {
     const to = m && Array.isArray(m.to) ? m.to.join(', ') : (m && m.to) || e.mailbox || address();
     return `<div class="r-head">
-      <button type="button" id="back-btn" class="btn icon small back" aria-label="Back to inbox">${BACK_ICON}</button>
+      <button type="button" id="back-btn" class="btn icon small back" aria-label="Kembali ke inbox">${BACK_ICON}</button>
       <div class="grow">
         <h2>${esc(e.subject)}</h2>
         <dl class="meta">
-          <dt>From</dt><dd>${esc(e.from)}</dd>
-          <dt>To</dt><dd>${esc(to)}</dd>
-          <dt>Date</dt><dd title="${esc(e.date)}">${esc(fmtFull(e.date))}</dd>
-          <dt>Size</dt><dd>${esc(fmtSize(e.size))}</dd>
+          <dt>Dari</dt><dd>${esc(e.from)}</dd>
+          <dt>Kepada</dt><dd>${esc(to)}</dd>
+          <dt>Tanggal</dt><dd title="${esc(e.date)}">${esc(fmtFull(e.date))}</dd>
+          <dt>Ukuran</dt><dd>${esc(fmtSize(e.size))}</dd>
           <dt>ID</dt><dd class="mono">${esc(e.id)}</dd>
         </dl>
       </div>
-      <button type="button" id="delete-btn" class="btn small danger" aria-label="Delete message">${TRASH_ICON} Delete</button>
+      <button type="button" id="delete-btn" class="btn small danger" aria-label="Hapus email">${TRASH_ICON} Hapus</button>
     </div>`;
   }
 
   function renderReader() {
     const e = state.emails.find(x => x.id === state.selectedId); if (!e) return;
     const m = state.detail && state.detail.id === e.id ? state.detail : null;
-    if (!m) { $('reader').innerHTML = head(e, null) + '<div class="r-body muted">Loading message…</div>'; return; }
-    const body = m.body || {}, hasText = !!(body.text && body.text.trim()), hasHtml = !!(body.html && body.html.trim());
+    if (!m) { $('reader').innerHTML = head(e, null) + '<div class="r-body muted">Memuat email…</div>'; return; }
+    const body = m.body || { text: m.text, html: m.html }, hasText = !!(body.text && body.text.trim()), hasHtml = !!(body.html && body.html.trim());
     const hdrs = m.headers && typeof m.headers === 'object' ? Object.entries(m.headers) : [];
     const tabs = [];
-    if (hasText) tabs.push(['text', 'Text']);
+    if (hasText) tabs.push(['text', 'Teks']);
     if (hasHtml) tabs.push(['html', 'HTML']);
     if (hdrs.length) tabs.push(['headers', `Headers (${hdrs.length})`]);
     if (!tabs.some(t => t[0] === state.tab)) state.tab = tabs.length ? tabs[0][0] : 'text';
@@ -527,15 +492,15 @@
     } else if (state.tab === 'headers') {
       content = `<table class="hdr">${hdrs.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(Array.isArray(v) ? v.join('\n') : typeof v === 'object' ? JSON.stringify(v) : v)}</td></tr>`).join('')}</table>`;
     } else {
-      content = hasText ? `<pre>${esc(body.text)}</pre>` : '<p class="muted">This message has no content.</p>';
+      content = hasText ? `<pre>${esc(body.text)}</pre>` : '<p class="muted">Email ini tidak berisi konten.</p>';
     }
     const atts = Array.isArray(m.attachments) ? m.attachments : [];
-    const files = atts.length ? `<div class="files"><h3>Attachments (${atts.length})</h3>${atts.map(a => {
+    const files = atts.length ? `<div class="files"><h3>Lampiran (${atts.length})</h3>${atts.map(a => {
       const href = a.download_url ? (/^https?:/i.test(a.download_url) ? a.download_url : API_BASE + a.download_url)
                                   : `${API_BASE}/api/v1/attachment/${encodeURIComponent(m.id)}/${encodeURIComponent(a.id)}?mailbox=${encodeURIComponent(address())}`;
-      return `<div class="file"><span class="name" title="${esc(a.filename)}">${esc(a.filename || 'attachment')}</span>
+      return `<div class="file"><span class="name" title="${esc(a.filename)}">${esc(a.filename || 'lampiran')}</span>
         <span class="info">${esc(a.content_type || '')}${a.size != null ? ' · ' + esc(fmtSize(a.size)) : ''}</span>
-        <a href="${esc(href)}" target="_blank" rel="noopener noreferrer" download>Download</a></div>`;
+        <a href="${esc(href)}" target="_blank" rel="noopener noreferrer" download>Unduh</a></div>`;
     }).join('')}</div>` : '';
 
     $('reader').innerHTML = head(e, m) +
@@ -556,7 +521,7 @@
       renderReader();
     } catch (err) {
       if (state.selectedId !== id) return;
-      $('reader').innerHTML = head(e, null) + `<div class="r-body" style="color:var(--err)">Could not load this message: ${esc(err.message)}</div>`;
+      $('reader').innerHTML = head(e, null) + `<div class="r-body" style="color:var(--err)">Gagal memuat email: ${esc(err.message)}</div>`;
     }
   }
 
@@ -570,7 +535,7 @@
       state.total = Math.max(0, state.total - 1);
       state.selectedId = null; state.detail = null;
       renderList(); renderPlaceholder(); setView('list');
-      toast('Message deleted');
+      toast('Email dihapus');
     } catch (err) { if (btn) btn.disabled = false; toast(err.message, 'err'); }
   }
 
@@ -583,7 +548,7 @@
     state.autoSync = on;
     $('sync-toggle').setAttribute('aria-pressed', String(on));
     $('sync-dot').classList.toggle('off', !on);
-    $('sync-text').textContent = on ? 'Auto-sync every 10s' : 'Auto-sync paused';
+    $('sync-text').textContent = on ? 'Sinkron otomatis 10 dtk' : 'Sinkron dijeda';
   }
 
   /* ================= Wiring ================= */
@@ -593,15 +558,6 @@
       const li = ev.target.closest('li'); if (!li) return;
       openMenu(false);
       if (li.dataset.domain !== state.domain) setAddress(state.login, li.dataset.domain);
-    });
-    $('custom-form').addEventListener('submit', ev => {
-      ev.preventDefault();
-      const d = $('custom-domain').value.trim().toLowerCase().replace(/^@/, '');
-      if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(d)) { toast('Enter a valid domain, e.g. example.com', 'err'); return; }
-      const customs = store.get('tm.domains', []);
-      if (!customs.includes(d) && !DEFAULT_DOMAINS.includes(d)) { customs.push(d); store.set('tm.domains', customs); }
-      $('custom-domain').value = ''; openMenu(false);
-      setAddress(state.login, d, { toast: `Using @${d}. Point its MX record to smtp.catchmail.io.` });
     });
     document.addEventListener('click', ev => { if (!$('domain-wrap').contains(ev.target)) openMenu(false); });
     document.addEventListener('keydown', ev => {
@@ -620,11 +576,13 @@
     $('login').addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); commitLogin(); ev.target.blur(); } });
     $('login').addEventListener('change', commitLogin);
     $('copy-btn').addEventListener('click', copyAddress);
+    $('theme-btn').addEventListener('click', () => { const d = document.documentElement, n = d.dataset.theme === 'light' ? 'dark' : 'light'; d.dataset.theme = n; store.set('tm.theme', n); });
+    $('readall-btn').addEventListener('click', () => { if (!state.emails.length) return; state.emails.forEach(e => state.read.add(e.id)); saveReadIds(); renderList(); toast('Semua email ditandai dibaca'); });
     $('qr-btn').addEventListener('click', () => toggleQR(true));
     $('qr-close').addEventListener('click', () => toggleQR(false));
     $('qr-modal').addEventListener('click', ev => { if (ev.target === $('qr-modal')) toggleQR(false); });
-    $('new-btn').addEventListener('click', () => setAddress(randomLogin(), state.domain, { toast: 'New address ready' }));
-    $('sync-toggle').addEventListener('click', () => { setSync(!state.autoSync); toast(state.autoSync ? 'Auto-sync on' : 'Auto-sync paused'); });
+    $('new-btn').addEventListener('click', () => setAddress(randomLogin(), state.domain, { toast: 'Alamat baru siap dipakai' }));
+    $('sync-toggle').addEventListener('click', () => { setSync(!state.autoSync); toast(state.autoSync ? 'Sinkron aktif' : 'Sinkron dijeda'); });
     $('refresh-btn').addEventListener('click', async () => {
       $('refresh-icon').animate([{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: 600 });
       await fetchMessages({ silent: false });
