@@ -156,8 +156,6 @@
   .file a { color: var(--accent); font-weight: 500; text-decoration: none; }
   .file a:hover { text-decoration: underline; }
 
-  footer { padding: 0 0 28px; font-size: 13px; color: var(--muted); }
-  footer .wrap { display: flex; flex-wrap: wrap; gap: 6px 22px; }
 
   /* Toasts + QR */
   #toasts { position: fixed; z-index: 60; top: 68px; right: 16px; left: 16px; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; pointer-events: none; }
@@ -249,13 +247,6 @@
   </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    <span>Public API limit: 1 request per second per IP</span>
-    <span>Messages are kept for up to 7 days</span>
-    <span>Not for sensitive accounts</span>
-  </div>
-</footer>
 
 <div id="qr-modal" class="modal" role="dialog" aria-modal="true" aria-label="QR code">
   <div class="modal-card">
